@@ -24,13 +24,12 @@ int main(int argc, char *argv[]) {
 
 	}
 	if (pid == 0) {
-		close(p[1]);
-		char buf[BUF_SIZE];
-		for (int i = 0; i < (argc - 1) * 2; i++) {
-			int n = read(p[0], buf, BUF_SIZE);
-			write(1, buf, n);
-		}
+		close(0);
+		dup(p[0]);
 		close(p[0]);
+		close(p[1]);
+		char *wc_argv[] = {"/wc", 0};
+		exec("/wc", wc_argv);
 		exit(0);
 	}
 	exit(0);
