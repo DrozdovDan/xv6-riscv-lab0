@@ -14,7 +14,7 @@ main(int argc, char *argv[])
   char c, cc;
   for (int i = 0; i < MAX_BUF_SIZE; i++) {
     cc = read(0, &c, 1);
-    if(cc < 1 || c == '\n' || c == '\r') {
+    if(cc < 1 || c == '\n' || c == '\r' || c == '\0') {
       buf[i] = '\0';
     }
     else {
@@ -22,13 +22,13 @@ main(int argc, char *argv[])
         buf[i] = c;
       }
       else {
-        printf("Buffer is full\n");
+        write(2, "Buffer is full\n", 15);
         exit(2);
       }
     }
     if (buf[i] == '\0') {
       if (digits_count + space_count != i || space_count != 1 || buf[i - 1] > '9' || buf[i - 1] < '0') {
-        printf("Incorrect data format\n");
+        write(2, "Incorrect data format\n", 22);
         exit(1);
       }
       break;
@@ -39,7 +39,7 @@ main(int argc, char *argv[])
       space_count++;
   }
   if (buf[0] > '9' || buf[0] < '0') {
-    printf("Incorrect data format\n");
+    write(2, "Incorrect data format\n", 22);
     exit(1);
   }
   int num1 = -1;
