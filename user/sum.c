@@ -14,10 +14,10 @@ main(int argc, char *argv[])
   int space_count = 0;
   int digits_count = 0;
   for (int i = 0; i < MAX_BUF_SIZE; i++) {
-    if (buf[i] == '\0') {
-      if (digits_count + space_count != i - 1 || space_count != 1 || buf[i - 2] > '9' || buf[i - 2] < '0') {
-        printf("Incorrect data format\n");
-        return 1;
+    if (buf[i] == '\0' || buf[i] == '\n' || buf[i] == '\r') {
+      if (digits_count + space_count != i || space_count != 1 || buf[i - 1] > '9' || buf[i - 1] < '0') {
+        write(2, "Incorrect data format\n", 22);
+        exit(1);
       }
       break;
     }
@@ -27,8 +27,8 @@ main(int argc, char *argv[])
       space_count++;
   }
   if (buf[0] > '9' || buf[0] < '0') {
-    printf("Incorrect data format\n");
-    return 1;
+    write(2, "Incorrect data format\n", 22);
+    exit(1);
   }
   int rank = 1, i = 0;
   for (i = 0; num1 / rank != 0; i++)
