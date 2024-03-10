@@ -14,7 +14,11 @@ main(int argc, char *argv[])
   char c, cc;
   for (int i = 0; i < MAX_BUF_SIZE; i++) {
     cc = read(0, &c, 1);
-    if(cc < 1 || c == '\n' || c == '\r' || c == '\0') {
+    if (cc < 0) {
+        write(2, "Read error\n", 11);
+        exit(3);
+    }
+    if(cc == 0 || c == '\n' || c == '\r' || c == '\0') {
       buf[i] = '\0';
     }
     else {
