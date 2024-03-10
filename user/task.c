@@ -5,9 +5,13 @@
 
 int main(int argc, char *argv[]) {
 	int p[2];
-	pipe(p);
+	int status = pipe(p);
+	if (status < 0) {
+		printf("Can't create pipe...\n");
+		exit(1);
+	}
 	int pid = fork();
-	if (pid == -1) {
+	if (pid < 0) {
 		printf("Can't create process...\n");
 		exit(1);
 	}
@@ -26,8 +30,13 @@ int main(int argc, char *argv[]) {
 	if (pid == 0) {
 		close(p[1]);
 		char buf[BUF_SIZE];
-		for (int i = 0; i < (argc - 1) * 2; i++) {
+		while (1 == 1) {
 			int n = read(p[0], buf, BUF_SIZE);
+			if (n < 0) {
+				printf("Can't read from pipe...\n");
+				exit(1);
+			}
+			if (n == 0) break;
 			write(1, buf, n);
 		}
 		close(p[0]);
