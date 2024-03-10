@@ -288,6 +288,10 @@ fork(void)
     return -1;
   }
 
+  np->info.parentid = p->pid;
+  safestrcpy(np->info.name, p->name, sizeof(p->name));
+  np->info.state = RUNNABLE;
+
   // Copy user memory from parent to child.
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
     freeproc(np);
