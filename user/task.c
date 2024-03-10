@@ -5,9 +5,13 @@
 
 int main(int argc, char *argv[]) {
 	int p[2];
-	pipe(p);
+	int status = pipe(p);
+	if (status < 0) {
+		printf("Can't create pipe...\n");
+		exit(1);
+	}
 	int pid = fork();
-	if (pid == -1) {
+	if (pid < 0) {
 		printf("Can't create process...\n");
 		exit(1);
 	}
@@ -29,7 +33,11 @@ int main(int argc, char *argv[]) {
 		close(p[0]);
 		close(p[1]);
 		char *wc_argv[] = {"/wc", 0};
-		exec("/wc", wc_argv);
+		status = exec("/wc", wc_argv);
+		if (status < 0) {
+			printf("Can't exec...\n");
+			exit(1);
+		}
 		exit(0);
 	}
 	exit(0);
