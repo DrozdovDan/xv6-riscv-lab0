@@ -685,3 +685,23 @@ procdump(void)
     printf("\n");
   }
 }
+
+int 
+ps_listinfo (struct procinfo *plist, int lim) {
+  if (!plist) {
+    return NPROC;
+  }
+  if (NPROC > lim) {
+    return -1;
+  }
+  acquire(&wait_lock);
+  for (int i = 0; i < NPROC; i++) {
+    acquire(&proc[i].lock);
+    if (proc[i].state == USED) {
+      plist[i] = proc[i].info;
+    }
+    release(&proc[i].lock);
+  }
+  release(&wait_lock);
+  return NPROC;
+}
