@@ -288,10 +288,6 @@ fork(void)
     return -1;
   }
 
-  np->info.parentid = p->pid;
-  safestrcpy(np->info.name, p->name, sizeof(p->name));
-  np->info.state = RUNNABLE;
-
   // Copy user memory from parent to child.
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
     freeproc(np);
@@ -688,20 +684,39 @@ procdump(void)
 
 int 
 ps_listinfo (struct procinfo *plist, int lim) {
-  if (!plist) {
-    return NPROC;
-  }
-  if (NPROC > lim) {
-    return -1;
-  }
+  int proc_count = 0;
   acquire(&wait_lock);
   for (int i = 0; i < NPROC; i++) {
     acquire(&proc[i].lock);
-    if (proc[i].state == USED) {
-      plist[i] = proc[i].info;
+    if (proc[i].state >= 0 && proc[i].state != UNUSED) {
+      proc_count++;
+    }
+    release(&proc[i].lock);
+  }
+  if (plist == 0) {
+    release(&wait_lock);
+    return proc_count;
+  }
+  if (proc_count > lim) {
+    release(&wait_lock);
+    return -1;
+  }
+  int j = 0;
+  for (int i = 0; i < NPROC; i++) {
+    acquire(&proc[i].lock);
+    if (proc[i].state >= 0 && proc[i].state != UNUSED) {
+      plist[j].state = proc[i].state;
+      safestrcpy(plist[j].name, proc[i].name, sizeof(proc[i].name));
+      if (proc[i].parent) {
+        plist[j].parentid = proc[i].parent->pid;
+      }
+      else {
+        plist[j].parentid = 0;
+      }
+      j++;
     }
     release(&proc[i].lock);
   }
   release(&wait_lock);
-  return NPROC;
+  return proc_count;
 }

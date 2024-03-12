@@ -83,7 +83,7 @@ enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 struct procinfo {
   char name[16];
-  int state;
+  enum procstate state;
   int parentid;
 };
 
@@ -110,5 +110,4 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  struct procinfo info;
 };
