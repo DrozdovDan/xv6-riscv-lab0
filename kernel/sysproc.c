@@ -96,7 +96,6 @@ sys_ps_listinfo(void) {
   int n = argstr(0, (char*)info, sizeof(struct procinfo*));
   int lim = 0;
   argint(0, &lim);
-  printf("%d\n", lim);
   if (n == -1) {
     return ps_listinfo(0, lim);
   }
