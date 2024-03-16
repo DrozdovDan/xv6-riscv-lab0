@@ -92,12 +92,9 @@ sys_uptime(void)
 
 uint64
 sys_ps_listinfo(void) {
-  struct procinfo info[NPROC];
-  int n = argstr(0, (char*)info, sizeof(struct procinfo*));
+  struct procinfo info;
+  argaddr(0, (uint64*)&info);
   int lim = 0;
-  argint(0, &lim);
-  if (n == -1) {
-    return ps_listinfo(0, lim);
-  }
-  return ps_listinfo(info, lim);
+  argint(1, &lim);
+  return ps_listinfo(&info, lim);
 }

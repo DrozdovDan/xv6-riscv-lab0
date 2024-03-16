@@ -685,7 +685,6 @@ procdump(void)
 int 
 ps_listinfo (struct procinfo *plist, int lim) {
   int proc_count = 0;
-  acquire(&wait_lock);
   for (int i = 0; i < NPROC; i++) {
     acquire(&proc[i].lock);
     if (proc[i].state >= 0 && proc[i].state != UNUSED) {
@@ -694,29 +693,34 @@ ps_listinfo (struct procinfo *plist, int lim) {
     release(&proc[i].lock);
   }
   if (plist == 0) {
-    release(&wait_lock);
     return proc_count;
   }
   if (proc_count > lim) {
-    release(&wait_lock);
     return -1;
   }
-  int j = 0;
   for (int i = 0; i < NPROC; i++) {
     acquire(&proc[i].lock);
     if (proc[i].state >= 0 && proc[i].state != UNUSED) {
-      plist[j].state = proc[i].state;
-      safestrcpy(plist[j].name, proc[i].name, sizeof(proc[i].name));
-      if (proc[i].parent) {
-        plist[j].parentid = proc[i].parent->pid;
+      if (copyout(myproc()->pagetable, (uint64)plist->name, (char*)proc[i].name, sizeof(proc[i].name)) < 0) {
+        release(&proc[i].lock);
+        return -2;
       }
-      else {
-        plist[j].parentid = 0;
+      if (copyout(myproc()->pagetable, (uint64)plist->state, (char*)proc[i].state, sizeof(proc[i].state)) < 0) {
+        release(&proc[i].lock);
+        return -3;
       }
-      j++;
+      acquire(&wait_lock);
+      acquire(&proc[i].parent->lock);
+      if (copyout(myproc()->pagetable, (uint64)plist->parentid, (char*)&proc[i].parent->pid, sizeof(proc[i].parent->pid)) < 0) {
+        release(&proc[i].parent->lock);
+        release(&wait_lock);
+        release(&proc[i].lock);
+        return -4;
+      }
+      release(&proc[i].parent->lock);
+      release(&wait_lock);
     }
     release(&proc[i].lock);
   }
-  release(&wait_lock);
   return proc_count;
 }

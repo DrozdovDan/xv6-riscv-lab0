@@ -13,10 +13,10 @@ main(int argc, char *argv[]) {
 		exit(999);
 	}
 	if (strcmp(argv[1], "0") == 0 || strcmp(argv[1], "0\n") == 0) {
-		struct procinfo info[NPROC];
+		struct procinfo info[12];
 		int n = ps_listinfo(info, 999);
-		if (n == -1) {
-			printf("Something went wrong with process in test 0...\n");
+		if (n < 0) {
+			printf("Something went wrong with process in test 0...(return %d)\n", n);
 			exit(100);
 		}
 		char* state;
@@ -48,7 +48,7 @@ main(int argc, char *argv[]) {
 		printf("%d\n", n);
 		exit(0);
 	} else if (strcmp(argv[1], "2") == 0 || strcmp(argv[1], "2\n") == 0) {
-		struct procinfo info[NPROC];
+		struct procinfo info[12];
 		int n = ps_listinfo(info, 1);
 		if (n == -1) {
 			printf("Not enough lim as planned...\n");
