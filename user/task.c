@@ -18,8 +18,16 @@ int main(int argc, char *argv[]) {
 	if (pid > 0) {
 		close(p[0]);
 		for (int i = 1; i < argc; i++) {
-			write(p[1], argv[i], strlen(argv[i]));
-			write(p[1], "\n", 1);
+			int n = write(p[1], argv[i], strlen(argv[i]));
+			if (n < 0) {
+				printf("Can't write to pipe...\n");
+				exit(1);
+			}
+			n = write(p[1], "\n", 1);
+			if (n < 0) {
+				printf("Can't write to pipe...\n");
+				exit(1);
+			}
 		}
 		close(p[1]);
 		int status;
