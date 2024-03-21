@@ -707,7 +707,11 @@ ps_listinfo (struct procinfo *plist, int lim) {
       pinfo.state = p->state;
       safestrcpy(pinfo.name, p->name, sizeof(p->name));
       acquire(&wait_lock);
+      if (p->parent)
+        acquire(&p->parent->lock);
       pinfo.parentid = p->parent ? p->parent->pid : -1;
+      if (p->parent)
+        release(&p->parent->lock);
       release(&wait_lock);
       if (copyout(myproc()->pagetable, (uint64)(plist + i), (char *)&pinfo, sizeof(pinfo)) < 0)
       {

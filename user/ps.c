@@ -8,12 +8,21 @@
 
 int 
 main(int argc, char *argv[]) {
-	struct procinfo info[NPROC];
-	int n = ps_listinfo(info, NPROC);
-	if (n == -1) {
-		printf("Something went wrong with process...\n");
-		exit(100);
-	}
+	int buf_size = 1;
+	struct procinfo *info = 0;
+	int n = -1;
+	do {
+		if (info)
+			free(info);
+		info = (struct procinfo*)malloc(buf_size * sizeof(struct procinfo));
+		n = ps_listinfo(info, buf_size);
+		if (n == -2) {
+			printf("Something went wrong with process...\n");
+			exit(100);
+		}
+		buf_size *= 2;
+	} while (n == -1);
+
 	char* state;
 	static char *states[] = {
 	  [UNUSED]    "unused",
