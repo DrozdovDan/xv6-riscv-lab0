@@ -13,7 +13,7 @@ main(int argc, char *argv[]) {
 		exit(999);
 	}
 	if (strcmp(argv[1], "0") == 0 || strcmp(argv[1], "0\n") == 0) {
-		struct procinfo info[12];
+		struct procinfo *info = (struct procinfo *)malloc(12 * sizeof(struct procinfo));
 		int n = ps_listinfo(info, 999);
 		if (n < 0) {
 			printf("Something went wrong with process in test 0...(return %d)\n", n);
@@ -48,13 +48,33 @@ main(int argc, char *argv[]) {
 		printf("%d\n", n);
 		exit(0);
 	} else if (strcmp(argv[1], "2") == 0 || strcmp(argv[1], "2\n") == 0) {
-		struct procinfo info[12];
+		struct procinfo *info = (struct procinfo *)malloc(12 * sizeof(struct procinfo));
 		int n = ps_listinfo(info, 1);
 		if (n == -1) {
 			printf("Not enough lim as planned...\n");
 			exit(0);
 		} else {
 			printf("Something went wrong with process in test 2...(n=%d)\n", n);
+			exit(102);
+		}
+	} else if (strcmp(argv[1], "3") == 0 || strcmp(argv[1], "3\n") == 0) {
+		struct procinfo *info = (struct procinfo *)malloc(1 * sizeof(struct procinfo));
+		int n = ps_listinfo(info, 10);
+		if (n == -2) {
+			printf("Not enough bufsize as planned...\n");
+			exit(0);
+		} else {
+			printf("Something went wrong with process in test 3...(n=%d)\n", n);
+			exit(102);
+		}
+	} else if (strcmp(argv[1], "4") == 0 || strcmp(argv[1], "4\n") == 0) {
+		struct procinfo *info = (struct procinfo *)malloc(10 * sizeof(struct procinfo));
+		int n = ps_listinfo(info + 100, 10);
+		if (n == -2) {
+			printf("Wrong address as planned...\n");
+			exit(0);
+		} else {
+			printf("Something went wrong with process in test 3...(n=%d)\n", n);
 			exit(102);
 		}
 	}
