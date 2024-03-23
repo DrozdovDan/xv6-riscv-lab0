@@ -681,3 +681,46 @@ procdump(void)
     printf("\n");
   }
 }
+
+int 
+ps_listinfo (struct procinfo *plist, int lim) {
+  int proc_count = 0;
+  for (int i = 0; i < NPROC; i++) {
+    acquire(&proc[i].lock);
+    if (proc[i].state >= 0 && proc[i].state != UNUSED) {
+      proc_count++;
+    }
+    release(&proc[i].lock);
+  }
+  if (plist == 0) {
+    return proc_count;
+  }
+  if (proc_count > lim) {
+    return -1;
+  }
+  struct proc* p;
+  struct procinfo pinfo;
+  int i = 0;
+  for (p = proc; p != &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if (p->state >= 0 && p->state != UNUSED) {
+      pinfo.state = p->state;
+      safestrcpy(pinfo.name, p->name, sizeof(p->name));
+      acquire(&wait_lock);
+      if (p->parent)
+        acquire(&p->parent->lock);
+      pinfo.parentid = p->parent ? p->parent->pid : -1;
+      if (p->parent)
+        release(&p->parent->lock);
+      release(&wait_lock);
+      if (copyout(myproc()->pagetable, (uint64)(plist + i), (char *)&pinfo, sizeof(pinfo)) < 0)
+      {
+          release(&p->lock);
+          return -2;
+      }
+      i++;
+    }
+    release(&p->lock);
+  }
+  return proc_count;
+}
