@@ -2,8 +2,8 @@
 #include "param.h"
 #include "memlayout.h"
 #include "riscv.h"
-#include "spinlock.h"
 #include "proc.h"
+#include "mutex.h"
 #include "defs.h"
 
 struct cpu cpus[NCPU];
@@ -322,6 +322,15 @@ fork(void)
   np->state = RUNNABLE;
   release(&np->lock);
 
+  acquire(&wait_lock);
+  for (int i = 0; i < NMUTEX; i++) {
+    if (p->mutex_table[i] && p->mutex_table[i]->count > 0) {
+      np->mutex_table[i] = p->mutex_table[i];
+      p->mutex_table[i]->count++;
+    }
+  }
+  release(&wait_lock);
+
   return pid;
 }
 
@@ -347,6 +356,15 @@ void
 exit(int status)
 {
   struct proc *p = myproc();
+
+  acquire(&p->lock);
+  for (int i = 0; i < NMUTEX; i++) {
+    if (p->mutex_table[i] && p->mutex_table[i]->count > 0) {
+      p->mutex_table[i]->count--;
+    }
+      p->mutex_table[i] = 0; 
+  }
+  release(&p->lock);
 
   if(p == initproc)
     panic("init exiting");
@@ -681,3 +699,5 @@ procdump(void)
     printf("\n");
   }
 }
+
+
