@@ -52,10 +52,6 @@ mutex_lock(int i) {
 
   struct mutex* m = mutex_table.mutex + i;
 
-  if (m->lock.locked){
-    return -2;
-  }
-
   acquiresleep(&m->lock);
   return 0;
 }
@@ -67,10 +63,6 @@ mutex_unlock(int i) {
   }
 
   struct mutex* m = mutex_table.mutex + i;
-
-  if (!m->lock.locked){
-    return -2;
-  }
 
   releasesleep(&m->lock);
   return 0;

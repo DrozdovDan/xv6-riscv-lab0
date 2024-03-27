@@ -66,9 +66,14 @@ main(int argc, char *argv[])
         break;
       }
 
-      do {
-        n = mutex_lock(mid);
-      } while (n < 0);
+      n = mutex_lock(mid);
+
+      if (n < 0) {
+        printf("Can't lock the mutex...\n");
+        close(p1[0]);
+        close(p2[1]);
+        exit(2);
+      }
 
       printf("%d: received %s\n", getpid(), buf);
 
@@ -126,9 +131,12 @@ main(int argc, char *argv[])
         break;
       }
 
-      do {
-        n = mutex_lock(mid);
-      } while (n < 0);
+      n = mutex_lock(mid);
+      if (n < 0) {
+        printf("Can't lock the mutex...\n");
+        close(p2[0]);
+        exit(2);
+      }
 
       printf("%d: received %s\n", getpid(), buf);
 
