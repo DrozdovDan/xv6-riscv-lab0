@@ -82,7 +82,9 @@ mutex_destroy(int i) {
     releasesleep(&m->lock);
   }
 
-  m->count = 0;
+  m->count--;
+  myproc()->mutex_table[i] = 0;
+
   release(&mutex_table.lock);
   return 0;
 }
