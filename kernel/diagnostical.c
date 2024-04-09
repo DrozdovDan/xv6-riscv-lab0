@@ -14,7 +14,7 @@ struct
 	struct spinlock lock;
 	char* begin;
 	char* end;
-	char buf[4096*MAXDBUF];
+	char buf[MAXDBUF];
 } diagnostical_buf;
 
 static char digits[] = "0123456789abcdef";
@@ -22,7 +22,7 @@ static char digits[] = "0123456789abcdef";
 void
 diagnostical_buf_init(void) {
 	initlock(&diagnostical_buf.lock, "diagnostical buf");
-	diagnostical_buf.begin = diagnostical_buf.buf + 4096*MAXDBUF;
+	diagnostical_buf.begin = diagnostical_buf.buf + MAXDBUF;
 	diagnostical_buf.end = diagnostical_buf.buf;
 }
 
@@ -38,10 +38,10 @@ write_in_buf(char symbol) {
 		diagnostical_buf.begin++;
 	}
 
-	if (diagnostical_buf.begin == diagnostical_buf.buf + 4096*MAXDBUF) 
+	if (diagnostical_buf.begin == diagnostical_buf.buf + MAXDBUF) 
 		diagnostical_buf.begin = diagnostical_buf.buf;
 
-	if (diagnostical_buf.end == diagnostical_buf.buf + 4096*MAXDBUF) 
+	if (diagnostical_buf.end == diagnostical_buf.buf + MAXDBUF) 
 		diagnostical_buf.end = diagnostical_buf.buf;
 }
 
@@ -151,7 +151,7 @@ dmesg(char* user_buf) {
 	int i = 0;
 
 	do {
-		if (sym == diagnostical_buf.buf + 4096*MAXDBUF)
+		if (sym == diagnostical_buf.buf + MAXDBUF)
 			break;
 		if (copyout(myproc()->pagetable, (uint64)(user_buf + i), sym, 1) < 0) {
 			release(&diagnostical_buf.lock);
@@ -159,7 +159,7 @@ dmesg(char* user_buf) {
 		}
 		i++;
 		sym++;
-		if (sym == diagnostical_buf.buf + 4096*MAXDBUF) 
+		if (sym == diagnostical_buf.buf + MAXDBUF) 
 			sym = diagnostical_buf.buf;
 	} while (sym != diagnostical_buf.end);
 
