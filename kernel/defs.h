@@ -9,6 +9,14 @@ struct sleeplock;
 struct stat;
 struct superblock;
 
+// diagnostical.c
+void 			diagnostical_buf_init(void);
+void  			write_in_buf(char);
+void 			pr_msg(char*, ...);
+void 			write_int(int, int, int);
+void 			write_ptr(uint64);
+int 			dmesg(char*);
+
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);

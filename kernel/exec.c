@@ -30,6 +30,7 @@ exec(char *path, char **argv)
   struct proghdr ph;
   pagetable_t pagetable = 0, oldpagetable;
   struct proc *p = myproc();
+  pr_msg("id = %d, name = %s", p->pid, path);
 
   begin_op();
 
