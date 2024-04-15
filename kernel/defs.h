@@ -17,6 +17,14 @@ void 			write_int(int, int, int);
 void 			write_ptr(uint64);
 int 			dmesg(char*);
 
+// protocol.c
+void 			protocol_init(void);
+int 			enable_protocol(int, int);
+int 			disable_protocol(int);
+int 			syscall_ticks(void);
+int 			interrupt_ticks(void);
+int 			switch_ticks(void);
+int 			exec_ticks(void);
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);

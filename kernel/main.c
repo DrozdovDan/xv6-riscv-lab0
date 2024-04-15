@@ -27,6 +27,7 @@ main()
     binit();         // buffer cache
     iinit();         // inode table
     diagnostical_buf_init(); // diagnostical buffer
+    protocol_init();
     fileinit();      // file table
     virtio_disk_init(); // emulated hard disk
     userinit();      // first user process
