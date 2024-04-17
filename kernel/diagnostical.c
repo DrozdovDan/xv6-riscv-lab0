@@ -88,14 +88,14 @@ pr_msg(char* fmt, ...) {
 
 	acquire(&diagnostical_buf.lock);
 
-	acquire(&tickslock);
+	//acquire(&tickslock);
 
 	write_in_buf('[');
 	write_int(ticks, 10, 1);
 	write_in_buf(']');
 	write_in_buf(' ');
 
-	release(&tickslock);
+	//release(&tickslock);
 
 	va_start(ap, fmt);
 	for(i = 0; (c = fmt[i] & 0xff) != 0; i++){

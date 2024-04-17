@@ -9,7 +9,7 @@
 #include "defs.h"
 #include "fs.h"
 
-typedef
+struct
 {
 	struct spinlock lock;
 	int syscall_ticks;
@@ -30,7 +30,7 @@ protocol_init(void) {
 int
 enable_protocol(int num, int ticks_) {
 	acquire(&protocol.lock);
-	acquire(&tickslock);
+	//acquire(&tickslock);
 	if (num == 0) {
 		protocol.syscall_ticks = ticks + ticks_;
 	}
@@ -47,8 +47,9 @@ enable_protocol(int num, int ticks_) {
 		release(&protocol.lock);
 		return -1;
 	}
-	release(&tickslock);
+	//release(&tickslock);
 	release(&protocol.lock);
+	return 0;
 }
 
 int
@@ -70,39 +71,56 @@ disable_protocol(int num) {
 		return -1;
 	}
 	release(&protocol.lock);
+	return 0;
 }
 
 uint64
 sys_enable_protocol(void) {
-	uint64 num, ticks_;
-	argint(0, num);
-	argint(1, ticks_);
+	int num = 0, ticks_ = 0;
+	argint(0, &num);
+	argint(1, &ticks_);
 	return enable_protocol(num, ticks_);
 }
 
 uint64
 sys_disable_protocol(void) {
-	uint64 num;
-	argint(0, num);
+	int num = 0;
+	argint(0, &num);
 	return disable_protocol(num);
 }
 
 int
 syscall_ticks(void) {
-	return protocol.syscall_ticks;
+	int status = 0;
+	//acquire(&tickslock);
+	status = protocol.syscall_ticks >= ticks;
+	//release(&tickslock);
+	return status;
 }
 
 int
 interrupt_ticks(void) {
-	return protocol.interrupt_ticks;
+	int status = 0;
+	//acquire(&tickslock);
+	status = protocol.interrupt_ticks >= ticks;
+	//release(&tickslock);
+	return status;
 }
 
 int
 switch_ticks(void) {
-	return protocol.switch_ticks;
+	int status = 0;
+	//acquire(&tickslock);
+	status = protocol.switch_ticks >= ticks;
+	//release(&tickslock);
+	return status;
 }
 
 int
 exec_ticks(void) {
-	return protocol.exec_ticks;
+	int status = 0;
+	//acquire(&tickslock);
+	status = protocol.exec_ticks >= ticks;
+	//release(&tickslock);
+	return status;
 }

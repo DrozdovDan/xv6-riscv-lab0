@@ -175,6 +175,9 @@ uartgetc(void)
 void
 uartintr(void)
 {
+  if (interrupt_ticks()) {
+    pr_msg("UART interrupt num=%d, cause=%d", UART0_IRQ, RHR);
+  }
   // read and process incoming characters.
   while(1){
     int c = uartgetc();
