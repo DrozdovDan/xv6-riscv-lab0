@@ -99,16 +99,15 @@ int check_identity(uint size, uint data) {
 int main(int argc, char** argv) {
     int size = atoi(argv[1]);
     int seed = atoi(argv[2]);
-    uint data = seed;
     size /= sizeof(uint);
     if (size <= 0 || size > MAXSIZE) {
         fprintf(2, "Wrong size...\n");
         exit(1);
     }
-    int status = write_file(size, data);
+    int status = write_file(size, seed);
     if (status != 0)
         exit(status);
-    status = check_identity(size, data);
+    status = check_identity(size, seed);
     if (status > 1)
         exit(status);
     if (status == 0)
