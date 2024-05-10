@@ -97,6 +97,10 @@ int check_identity(uint size, uint data) {
 }
 
 int main(int argc, char** argv) {
+    if (argc != 3) {
+        fprintf(2, "Wrong number of arguments...");
+        exit(-1);
+    }
     int size = atoi(argv[1]);
     int seed = atoi(argv[2]);
     size /= sizeof(uint);
