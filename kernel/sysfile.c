@@ -503,3 +503,88 @@ sys_pipe(void)
   }
   return 0;
 }
+
+uint64 sys_symlink(void) {
+  char target[MAXPATH], filename[MAXPATH];
+  int target_size = -1, filename_size = -1;
+  struct inode *ip;
+
+  if ((target_size = argstr(0, target, MAXPATH)) < 0 || target_size > MAXPATH)
+    return -1;
+  if ((filename_size = argstr(1, filename, MAXPATH)) < 0 || filename_size > MAXPATH)
+    return -1;
+
+  begin_op();
+
+  if ((ip = namei(filename)) == 0) {
+
+    ip = create(filename, T_SYMLINK, 0, 0);
+
+    if (ip == 0) {
+      end_op();
+      return -1;
+    }
+
+    iunlock(ip);
+  }
+
+  end_op();
+
+  int max = (MAXOPBLOCKS / 2 - 2) * BSIZE;
+  int i = 0, off = 0;
+
+  while (i < MAXPATH) {
+
+    int n = MAXPATH - i, r;
+
+    if (n > max)
+      n = max;
+
+    begin_op();
+
+    ilock(ip);
+
+    if ((r = writei(ip, 0, (uint64)&target + i, off, n)) > 0)
+      off += r;
+
+    iunlock(ip);
+
+    end_op();
+
+    if (r != n)
+      break;
+
+    i += r;
+  }
+
+  int ret = (i == MAXPATH ? MAXPATH : -1);
+
+  return ret;
+}
+
+uint64 sys_readlink(void) {
+  char filename[MAXPATH];
+  uint64 buf;
+  struct inode *ip;
+
+  if (argstr(0, filename, MAXPATH) < 0)
+    return -1;
+  argaddr(1, &buf);
+
+  begin_op();
+
+  if ((ip = namei(filename)) == 0) {
+    end_op();
+    return -1;
+  }
+
+  ilock(ip);
+
+  int ret = readi(ip, 1, buf, 0, MAXPATH);
+
+  iunlock(ip);
+
+  end_op();
+
+  return ret;
+}

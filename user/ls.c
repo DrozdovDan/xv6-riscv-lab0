@@ -1,7 +1,10 @@
+
 #include "kernel/types.h"
 #include "kernel/stat.h"
 #include "user/user.h"
 #include "kernel/fs.h"
+#include "kernel/param.h"
+#include "kernel/fcntl.h"
 
 char*
 fmtname(char *path)
@@ -65,6 +68,17 @@ ls(char *path)
         continue;
       }
       printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+    }
+    break;
+  case T_SYMLINK:
+    char symlink_buf[MAXPATH];
+    int n = readlink(path, symlink_buf);
+    if (n < 0) {
+      printf("ln: wrong symlink\n");
+    } else {
+      if (n < MAXPATH)
+        symlink_buf[n] = '\0';
+      printf("%s %d %d %l | %s\n", fmtname(path), st.type, st.ino, st.size, symlink_buf);
     }
     break;
   }
