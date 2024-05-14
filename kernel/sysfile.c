@@ -301,18 +301,12 @@ create(char *path, short type, short major, short minor)
   return 0;
 }
 
-uint64
-sys_open(void)
-{
-  char path[MAXPATH + 1];
-  int fd, omode;
+int
+open(char* path, int omode) {
+  int fd;
   struct file *f;
   struct inode *ip;
-  int n;
-
-  argint(1, &omode);
-  if((n = argstr(0, path, MAXPATH)) < 0)
-    return -1;
+  static int counter = 0;
 
   begin_op();
 
@@ -328,25 +322,48 @@ sys_open(void)
       return -1;
     }
     ilock(ip);
-    if (!(omode & O_NOFOLLOW)) {
-      int counter = 0, len;
+    if (ip->type == T_SYMLINK && !(omode & O_NOFOLLOW)) {
+      int len;
       char buf[MAXPATH+1];
-      for (; counter < MAXDEPTH && ip->type == T_SYMLINK; counter++) {
+      if (counter < MAXDEPTH) {
+        counter++;
         len = readi(ip, 0, (uint64)buf, 0, MAXPATH);
         buf[len] = 0;
+        char buf2[MAXPATH * 2 + 1];
+        int i = 0;
+        if (buf[0] == '.') {
+          for (int j = 0; j < strlen(path) + 1; j++) {
+            if (!path[j])
+              break;
+            if (path[j] == '/')
+              i = j;
+          }
+
+          for (int j = 0; j < i; j++)
+            buf2[j] = path[j];
+
+          buf2[i++] = '/';
+        }
+
+        for (int j = 0; j < len + 1; j++) {
+          buf2[j + i] = buf[j];
+        }
         iunlockput(ip);
-        if ((ip = namei(buf)) == 0) {
-          end_op();
+        end_op();
+        if ((fd = open(buf2, omode)) < 0) {
+          counter = 0;
           return -1;
         }
-        ilock(ip);
-      }
-
-      if (counter > MAXDEPTH) {
+      } else {
+        counter = 0;
         iunlockput(ip);
         end_op();
         return -1;
       }
+
+      counter = 0;
+
+      return fd;
     }
     if(ip->type == T_DIR && omode != O_RDONLY && omode != O_NOFOLLOW){
       iunlockput(ip);
@@ -388,6 +405,20 @@ sys_open(void)
   end_op();
 
   return fd;
+}
+
+uint64
+sys_open(void)
+{
+  char path[MAXPATH + 1];
+  int omode;
+  int n;
+
+  argint(1, &omode);
+  if((n = argstr(0, path, MAXPATH)) < 0)
+    return -1;
+
+  return open(path, omode);
 }
 
 uint64
@@ -547,7 +578,7 @@ sys_symlink(void)
     return -1;
   }
 
-  writei(ip, 0, (uint64)target, 0, target_size + 1);
+  writei(ip, 0, (uint64)target, 0, target_size);
 
   iunlockput(ip);
 
