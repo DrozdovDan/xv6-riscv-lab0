@@ -332,8 +332,7 @@ sys_open(void)
       int counter = 0, len;
       char buf[MAXPATH+1];
       for (; counter < MAXDEPTH && ip->type == T_SYMLINK; counter++) {
-        readi(ip, 0, (uint64)&len, 0, sizeof(len));
-        readi(ip, 0, (uint64)buf, sizeof(len), len);
+        len = readi(ip, 0, (uint64)buf, 0, MAXPATH);
         buf[len] = 0;
         iunlockput(ip);
         if ((ip = namei(buf)) == 0) {
@@ -532,22 +531,23 @@ sys_symlink(void)
   int target_size = -1, filename_size = -1;
   struct inode *ip;
 
-  if ((target_size = argstr(0, target, MAXPATH)) < 0 || target_size > MAXPATH)
-    return -1;
-  if ((filename_size = argstr(1, filename, MAXPATH)) < 0 || filename_size > MAXPATH)
-    return -1;
-
   begin_op();
+
+  if ((target_size = argstr(0, target, MAXPATH)) < 0 || target_size > MAXPATH) {
+    end_op();
+    return -1;
+  }
+  if ((filename_size = argstr(1, filename, MAXPATH)) < 0 || filename_size > MAXPATH) {
+    end_op();
+    return -1;
+  }
 
   if ((ip = create(filename, T_SYMLINK, 0, 0)) == 0) {
     end_op();
     return -1;
   }
 
-  int len = strlen(target);
-
-  writei(ip, 0, (uint64)&len, 0, sizeof(len));
-  writei(ip, 0, (uint64)target, sizeof(len), len + 1);
+  writei(ip, 0, (uint64)target, 0, target_size + 1);
 
   iunlockput(ip);
 
@@ -576,10 +576,11 @@ sys_readlink(void)
 
 
   int len;
-  char path[MAXPATH];
+  char path[MAXPATH + 1];
 
-  readi(ip, 0, (uint64)&len, 0, sizeof(len));
-  readi(ip, 0, (uint64)path, sizeof(len), len + 1);
+  len = readi(ip, 0, (uint64)path, 0, MAXPATH);
+
+  path[len] = '\0';
 
   copyout(myproc()->pagetable, buf, path, len + 1);
 

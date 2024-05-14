@@ -5,96 +5,146 @@
 #include "kernel/fs.h"
 #include "user/user.h"
 
-#define MAX_DEPTH 10
-#define N_CASES 14
+#define N_CASES 10
 #define BUFSIZE 512
 
 char buf[BUFSIZE];
 
 char* cases[N_CASES] = {
-    "Корректная абсолютная ссылка на файл",
-    "Корректная относительная ссылка на файл того же каталога",
-    "Корректная относительная ссылка на файл каталога на 2-3 уровня выше",
-    "Корректная относительная ссылка на файл каталога на 2-3 уровня ниже",
-    "Корректная абсолютная ссылка на абсолютную символическую ссылку",
-    "Корректная абсолютная ссылка на относительную символическую ссылку",
-    "Корректная относительная ссылка на относительную символическую ссылку",
-    "Ссылка на себя (бесконечная рекурсия)",
-    "Косвенная ссылка на себя (бесконечная рекурсия через 2-3 перехода)",
-    "Абсолютная ссылка на несуществующий файл",
-    "Относительная ссылка на несуществующий файл того же каталога",
-    "Относительная ссылка на несуществующий файл каталога на 2-3 уровня выше",
-    "Относительная ссылка на несуществующий файл каталога на 2-3 уровня ниже",
-    0
+    "000\n",
+    "111\n",
+    "222\n",
+    "333\n",
+    "444\n",
+    "555\n",
+    "666\n",
+    "777\n",
+    "888\n",
+    "999\n"
 };
 
-int prepare_cases() {
-    if (open("aa", O_CREATE | O_WRONLY) < 0) return 1;
-    if (open("bb", O_CREATE | O_WRONLY) < 0) return 1;
-    if (open("cc", O_CREATE | O_WRONLY) < 0) return 1;
-    if (open("dd", O_CREATE | O_WRONLY) < 0) return 1;
-
-    if (mkdir("dir1") < 0) return 1;
-    if (mkdir("dir1/dir2") < 0) return 1;
-    if (mkdir("dir1/dir2/dir3") < 0) return 1;
-
-    if (symlink("aa", "link1") < 0) return 1;                     // 0
-    if (symlink("bb", "link2") < 0) return 1;                     // 1
-    if (symlink("../bb", "dir1/link3") < 0) return 1;             // 2
-    if (symlink("../dir1/bb", "dir1/dir2/link4") < 0) return 1;   // 3
-    if (symlink("/link1", "dir1/dir2/dir3/link5") < 0) return 1;  // 4
-    if (symlink("/dir1/link3", "dir1/dir2/link6") < 0) return 1;  // 5
-    if (symlink("link4", "dir1/dir2/link7") < 0) return 1;        // 6
-    if (symlink("link7", "dir1/dir2/link8") < 0) return 1;        // 7
-    if (symlink("link6", "dir1/dir2/link9") < 0) return 1;        // 8
-    if (symlink("ee", "link10") < 0) return 1;                    // 9
-    if (symlink("ff", "dir1/link11") < 0) return 1;               // 10
-    if (symlink("../gg", "dir1/link12") < 0) return 1;            // 11
-    if (symlink("../dir1/hh", "dir1/dir2/link13") < 0) return 1;  // 12
-
+int generate_file(char* path, char* content) {
+    int file = open(path, O_CREATE | O_RDWR);
+    if (file < 0) return -1;
+    write(file, content, sizeof(content));
+    close(file);
     return 0;
 }
 
-int test_case(char* path, int case_id) {
-    char buf[BUFSIZE];
-    int fd = open(path, O_RDONLY);
-    if (fd < 0) {
-        printf("Ошибка открытия %s\n", path);
-        return 1;
-    }
-    int n = read(fd, buf, sizeof(buf));
+int main(int argc, char const *argv[])
+{
+    int n;
+    n = mkdir("/d1");
     if (n < 0) {
-        printf("Ошибка чтения %s\n", path);
-        close(fd);
-        return 1;
+        fprintf(2, "ERROR...\n");
+        exit(1);
     }
-    buf[n] = 0;
-    printf("Случай %d: %s\nСодержимое: %s\n", case_id, cases[case_id], buf);
-    close(fd);
-    return 0;
-}
-
-int main(int argc, char *argv[]) {
-    prepare_cases();
-
-    int i, ret = 0;
-    for (i = 0; cases[i]; i++) {
-        ret |= test_case(".", i);
-
-        if (chdir("..") == 0) {
-            ret |= test_case("..", i);
-            chdir(".");
-        }
-
-        if (chdir("..") == 0) {
-            ret |= test_case("..", i);
-            chdir("..");
-        }
+    n = mkdir("/d1/d2");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = mkdir("/d1/d2/d3");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = mkdir("/d1/d2/d3/d4");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = mkdir("/d1/d2/d3/d4/d5");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
     }
 
-    if (ret > 0)
-    	fprintf(2, "Something isn't normal...\n");
-   	else
-   		fprintf(2, "Everything is ok!\n");
-    exit(ret);
+    n = generate_file("/d1/d2/d3/f1", cases[0]);
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = generate_file("/d1/f2", cases[1]);
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = generate_file("/d1/d2/d3/d4/d5/f3", cases[2]);
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+
+    n = symlink("/d1/d2/d3/f1", "/d1/d2/d3/l1");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("./f1", "/d1/d2/d3/l2");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("./d4/d5/f3", "/d1/d2/d3/l3");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("../../f2", "/d1/d2/d3/l4");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("/d1/d2/d3/l1", "/d1/d2/d3/l5");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("/d1/d2/d3/l2", "/d1/d2/d3/l6");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("./l2", "/d1/d2/d3/l7");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("/d1/d2/d3/l8", "/d1/d2/d3/l8");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("/d1/d2/d3/l9", "/d1/d2/d3/l10");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("/d1/d2/d3/l10", "/d1/d2/d3/l9");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("/d1/d2/d3/w", "/d1/d2/d3/l11");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("./f2", "/d1/d2/d3/l12");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("./d4/d5/f1", "/d1/d2/d3/l13");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    n = symlink("../../f1", "/d1/d2/d3/l14");
+    if (n < 0) {
+        fprintf(2, "ERROR...\n");
+        exit(1);
+    }
+    exit(0);
 }

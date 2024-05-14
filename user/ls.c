@@ -68,15 +68,7 @@ ls(char *path)
         continue;
       }
       if (st.type == T_SYMLINK) {
-        char symlink_buf[MAXPATH+1];
-        int n = readlink(buf, symlink_buf);
-        if (n < 0) {
-          printf("ls: cannot read link %s\n", fmtname(path));
-        }
-        else {
-          symlink_buf[n] = 0;
-          printf("%s %d %d %l | %s\n", fmtname(path), st.type, st.ino, st.size, symlink_buf);
-        }
+        ls(buf);
       } else {
         printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
       }
@@ -84,14 +76,14 @@ ls(char *path)
     break;
 
   case T_SYMLINK:
-    char symlink_buf[MAXPATH+1];
+    char symlink_buf[MAXPATH + 1];
     int n = readlink(path, symlink_buf);
     if (n < 0) {
       printf("ls: cannot read link %s\n", fmtname(path));
     }
     else {
       symlink_buf[n] = 0;
-      printf("%s %d %d %l | %s\n", fmtname(path), st.type, st.ino, st.size, symlink_buf);
+      printf("%s %d %d %l -> %s\n", fmtname(path), st.type, st.ino, st.size, symlink_buf);
     }
     break;
   }
