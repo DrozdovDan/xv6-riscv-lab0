@@ -302,7 +302,7 @@ int main(int argc, char const *argv[])
         fprintf(2, "7 went wrong\n");
         exit(1);
     }
-    /*n = check_link("l8", 0);
+    n = check_link("l8", 0);
     if (n != 0) {
         fprintf(2, "8 went wrong\n");
         exit(1);
@@ -316,7 +316,7 @@ int main(int argc, char const *argv[])
     if (n != 0) {
         fprintf(2, "10 went wrong\n");
         exit(1);
-    }*/
+    }
     n = check_link("l11", 0);
     if (n != 0) {
         fprintf(2, "11 went wrong\n");
